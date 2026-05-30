@@ -1,0 +1,6 @@
+[project]
+name = "olapi"
+version = "0.0.1"
+description = "Template for API application"
+readme = "README.md"
+dependencies = []
