@@ -1,8 +1,12 @@
+import logging
 from dataclasses import dataclass
 from typing import Any
 
 import httpx
 from jose import jwt
+from starlette import status as status_codes
+
+logger = logging.getLogger(__name__)
 
 # TODO: consider using https://github.com/marcospereirampj/python-keycloak
 # TODO: error management (handle http errors - e.g. 409 on create) + usage in router
@@ -26,7 +30,19 @@ class AuthenticationError(Exception):
     pass
 
 
-class Authenticator:
+def _check_response(response: httpx.Response) -> None:
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError:
+        response.read()
+        logger.error(
+            f"Failed {response.request.method} {response.request.url.path}"
+            f": {response.status_code} {response.text}"
+        )
+        raise
+
+
+class KeycloakClient:
     def __init__(
         self,
         keycloak_url: str,
@@ -41,7 +57,11 @@ class Authenticator:
         self._keycloak_realm = keycloak_realm
         self._keycloak_client_id = keycloak_client_id
 
-        self._client = httpx.Client(base_url=self._keycloak_url, timeout=10.0)
+        self._client = httpx.Client(
+            base_url=self._keycloak_url,
+            timeout=10.0,
+            event_hooks={"response": [_check_response]},
+        )
         self._jwks: dict[str, Any] | None = None
 
     def _load_jwks(self) -> dict[str, Any]:
@@ -52,7 +72,6 @@ class Authenticator:
             f"/realms/{self._keycloak_realm}/protocol/openid-connect/certs",
             timeout=10.0,
         )
-        response.raise_for_status()
         self._jwks = response.json()
         return self._jwks
 
@@ -67,7 +86,6 @@ class Authenticator:
                 "password": self._keycloak_admin_password,
             },
         )
-        response.raise_for_status()
         payload: dict[str, Any] = response.json()
         return str(payload["access_token"])
 
@@ -82,7 +100,6 @@ class Authenticator:
                 "credentials": [{"type": "password", "value": password, "temporary": False}],
             },
         )
-        response.raise_for_status()
         location = response.headers[
             "location"
         ]  # "http://keycloak:8080/admin/realms/olapi/users/<id>"
@@ -90,29 +107,31 @@ class Authenticator:
 
     def delete_user(self, keycloak_id: str) -> None:
         token = self._admin_token()
-        response = self._client.delete(
+        self._client.delete(
             f"/admin/realms/{self._keycloak_realm}/users/{keycloak_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
-        response.raise_for_status()
 
     def get_user_token(self, email: str, password: str) -> TokenInfo:
-        response = self._client.post(
-            f"/realms/{self._keycloak_realm}/protocol/openid-connect/token",
-            data={
-                "grant_type": "password",
-                "client_id": self._keycloak_client_id,
-                "email": email,
-                "password": password,
-            },
-        )
-        if response.status_code == 401:
-            raise AuthenticationError("invalid credentials")
-        response.raise_for_status()
+        try:
+            response = self._client.post(
+                f"/realms/{self._keycloak_realm}/protocol/openid-connect/token",
+                data={
+                    "grant_type": "password",
+                    "client_id": self._keycloak_client_id,
+                    "username": email,
+                    "password": password,
+                },
+            )
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == status_codes.HTTP_401_UNAUTHORIZED:
+                raise AuthenticationError("Unauthorized") from None
+            raise
         response_data = response.json()
-        access_token = response_data["access_token"]
-        if not isinstance(access_token, str):
-            raise AuthenticationError(f"invalid access token: {access_token!r}")
+        # {'access_token': '*.*.*-*-*-*', 'expires_in': 300, 'token_type': 'Bearer',
+        #  'refresh_token': '*.*.*-*-*-*', 'refresh_expires_in': 1800,
+        #  'not-before-policy': 0, 'scope': 'email profile', 'session_state': '*-*-*-*-*'
+        # }
         return TokenInfo(
             access_token=response_data["access_token"],
             refresh_token=response_data["refresh_token"],

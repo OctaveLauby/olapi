@@ -1,7 +1,7 @@
-from auth.keycloak import Authenticator
+from auth.keycloak import KeycloakClient
 from olapi.settings import settings
 
-authenticator = Authenticator(
+authenticator = KeycloakClient(
     keycloak_url=settings.keycloak_url,
     keycloak_admin_user=settings.keycloak_admin_user,
     keycloak_admin_password=settings.keycloak_admin_password,

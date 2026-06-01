@@ -1,16 +1,12 @@
 # Realm
 
-> Simplified from Claude description.
-
-Keycloak ships with a built-in master realm dedicated to administering Keycloak itself (the admin/admin user lives there). You create separate realms for your applications.
-
-- `"realm": "olapi"`: Realm identifier, appears in URLs (`/realms/olapi/...`) and JWT `iss` claim.
-- `"enabled": true`: Kill-switch for the realm
-- `"registrationAllowed": false`: Keycloak's built-in self-registration page; off so new users must go through `POST /users`.
-- `"clientId": "olapi-api"`: Client identifier the API sends in token requests.
-- `"enabled": true`: Kill-switch for the client
-- `"protocol": "openid-connect"`: OIDC vs SAML; explicit even though OIDC is the default.
-- `"publicClient": true`: Whether the client needs a `client_secret`; on (no secret) — our backend is trusted and it keeps config simpler.
-- `"standardFlowEnabled": false`: OAuth2 Authorization Code flow (redirect-based browser login); off, we don't use UI redirects.
-- `"implicitFlowEnabled": false`: Legacy Implicit flow (tokens in URL fragment); off — deprecated, always off in modern setups.
-- `"directAccessGrantsEnabled": true`: ROPC flow (username/password → token in one POST); on, it's what `POST /login` uses.
+- `"realm": "olapi"`: Realm identifier, appears in URLs (`/realms/olapi/...`).
+- `"registrationAllowed": false`: disable registration page to enforce registration with api and ensure username=email
+- `"registrationEmailAsUsername": true`: forces username=email (username is ignored if given in create)
+- `"clients": ...`
+    - `"clientId": "olapi-api"`: Client identifier the API sends in token requests.
+    - `"protocol": "openid-connect"`: OIDC (modern, uses json - jwt -) vs SAML (older, uses XML); explicit even though OIDC is the default.
+    - `"publicClient": true`: Whether the client needs a `client_secret`; on (no secret) — our backend is trusted and it keeps config simpler.
+    - `"standardFlowEnabled": false`: OAuth2 Authorization Code flow (redirect-based browser login); off for simplicity but not recommanded.
+    - `"directAccessGrantsEnabled": true`: toggles the Resource Owner Password Credentials (ROPC) that we uses for logging
+- `"components": ...`: Only makes email required to avoid "Account is not fully set up" error message

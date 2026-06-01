@@ -1,0 +1,50 @@
+import logging
+
+import httpx
+
+from auth.keycloak import AuthenticationError, KeycloakClient
+
+logger = logging.getLogger(__name__)
+
+
+def main(
+    email: str,
+    password: str,
+    delete: bool = False,
+) -> None:
+    authenticator = KeycloakClient(
+        keycloak_url="http://localhost:8080",
+        keycloak_realm="olapi",
+        keycloak_client_id="olapi-api",
+        keycloak_admin_user="admin",
+        keycloak_admin_password="admin",
+    )
+    try:
+        token_info = authenticator.get_user_token(email=email, password=password)
+        logger.info(f"Got token from existing user: '{token_info}'.")
+    except httpx.ConnectError:
+        logger.info("Could not connect to keycloack: make sure keycloak container is up.")
+        raise
+    except AuthenticationError:
+        user_id = authenticator.create_user(email=email, password=password)
+        logger.info(f"New user created with id='{user_id}'.")
+        token_info = authenticator.get_user_token(email=email, password=password)
+        logger.info(f"New token created: {token_info}.")
+    user = authenticator.get_user_from_token(token_info.access_token)
+    logger.info(f"Got user from token: {user.id}.")
+
+    if delete:
+        authenticator.delete_user(keycloak_id=user.id)
+        logger.info("User deleted.")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+    main(
+        email="olauby@example.com",
+        password="123",
+        delete=False,
+    )
