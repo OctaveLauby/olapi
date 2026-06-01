@@ -1,71 +1,67 @@
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from ulid import ULID
 
-from olapi.auth.jwt import decode_token
-from olapi.auth.keycloak import KeycloakError, keycloak
+from auth.keycloak import AuthenticationError
+from olapi.auth import authenticator
 from olapi.deps import get_db
-from olapi.models.user import User
-from olapi.schemas.auth import LoginRequest, TokenResponse
-from olapi.schemas.user import UserCreate, UserOut
+from olapi.dtos.auth import LoginRequest, TokenResponse
+from olapi.dtos.user import User, UserCreate
+from olapi.models.user import UserModel
 
 router = APIRouter()
 
 
-@router.post("/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     existing = db.execute(
-        select(User).where((User.username == payload.username) | (User.email == payload.email))
+        select(UserModel).where(
+            (UserModel.username == payload.username) | (UserModel.email == payload.email)
+        )
     ).scalar_one_or_none()
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="username or email already taken",
         )
-
-    try:
-        keycloak_id = keycloak.create_user(payload.username, payload.email, payload.password)
-    except KeycloakError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
-
-    user = User(
+    keycloak_id = authenticator.create_user(payload.email, payload.password)
+    user_model = UserModel(
         keycloak_id=keycloak_id,
         username=payload.username,
         email=payload.email,
     )
     try:
-        db.add(user)
+        db.add(user_model)
         db.commit()
-        db.refresh(user)
+        db.refresh(user_model)
     except SQLAlchemyError:
         db.rollback()
-        keycloak.delete_user(keycloak_id)
+        authenticator.delete_user(keycloak_id)
         raise
-    return user
+    return User.from_model(user_model)
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
+def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     try:
-        token = keycloak.login(payload.username, payload.password)
-    except KeycloakError as e:
+        token_info = authenticator.get_user_token(payload.email, payload.password)
+    except AuthenticationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
 
-    # JIT-provision local row for users created directly in Keycloak (e.g. via admin UI).
-    claims = decode_token(token["access_token"])
-    keycloak_id = claims["sub"]
-    exists = db.execute(select(User).where(User.keycloak_id == keycloak_id)).scalar_one_or_none()
+    # Create user if does not exist in db
+    keycloak_user = authenticator.get_user_from_token(token=token_info.access_token)
+    exists = db.execute(
+        select(UserModel).where(UserModel.keycloak_id == keycloak_user.id)
+    ).scalar_one_or_none()
     if exists is None:
         db.add(
-            User(
-                keycloak_id=keycloak_id,
+            UserModel(
+                keycloak_id=keycloak_user.id,
                 username=str(ULID()),
-                email=claims.get("email") or f"{keycloak_id}@unknown.local",
+                email=payload.email,
             )
         )
         db.commit()
-    return token
+    return TokenResponse.from_info(token_info)

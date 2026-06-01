@@ -114,3 +114,5 @@ About `POST /login`:
 ### Evolutions
 
 - Rate limiter
+- Settings management (dotenv or config files)
+- Activate Keycloak secret
