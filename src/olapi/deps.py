@@ -5,9 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from olapi.auth.jwt import TokenError, decode_token
+from auth.keycloak import AuthenticationError
+from olapi.auth import authenticator
 from olapi.db import SessionLocal
-from olapi.models.user import User
+from olapi.models.user import UserModel
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
@@ -23,14 +24,16 @@ def get_db() -> Iterator[Session]:
 def current_user(
     token: str | None = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
-) -> User:
+) -> UserModel:
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
     try:
-        claims = decode_token(token)
-    except TokenError as e:
+        keycloack_user = authenticator.get_user_from_token(token)
+    except AuthenticationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
-    user = db.execute(select(User).where(User.keycloak_id == claims["sub"])).scalar_one_or_none()
+    user = db.execute(
+        select(UserModel).where(UserModel.keycloak_id == keycloack_user.id)
+    ).scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown user")
     return user

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 
 from olapi.deps import current_user
-from olapi.models.user import User
+from olapi.models.user import UserModel
 
 router = APIRouter()
 
 
 @router.get("/hello")
-def hello(user: User = Depends(current_user)) -> dict[str, str]:
+def hello(user: UserModel = Depends(current_user)) -> dict[str, str]:
     return {"message": f"Hello {user.username} !"}
