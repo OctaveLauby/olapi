@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -10,6 +12,8 @@ from olapi.deps import get_db
 from olapi.dtos.auth import LoginRequest, TokenResponse
 from olapi.dtos.user import User, UserCreate
 from olapi.models.user import UserModel
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -27,6 +31,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
             detail="username or email already taken",
         )
     keycloak_id = authenticator.create_user(payload.email, payload.password)
+    logger.info(f"User {payload.email} saved authentication service.")
     user_model = UserModel(
         keycloak_id=keycloak_id,
         username=payload.username,
@@ -36,9 +41,11 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
         db.add(user_model)
         db.commit()
         db.refresh(user_model)
+        logger.info(f"User {payload.email} saved database.")
     except SQLAlchemyError:
         db.rollback()
         authenticator.delete_user(keycloak_id)
+        logger.info(f"User {payload.email} deleted from authentication service.")
         raise
     return User.from_model(user_model)
 
@@ -56,6 +63,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
         select(UserModel).where(UserModel.keycloak_id == keycloak_user.id)
     ).scalar_one_or_none()
     if exists is None:
+        logger.info(f"User {payload.email} saved in database at logging.")
         db.add(
             UserModel(
                 keycloak_id=keycloak_user.id,

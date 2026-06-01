@@ -1,10 +1,14 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from logging.config import dictConfig
 
 from fastapi import FastAPI
 
+from olapi.settings import LOGGING_CONFIG
 from olapi.db import Base, engine
 from olapi.routers import auth, temporary
+
+dictConfig(LOGGING_CONFIG)
 
 
 @asynccontextmanager
