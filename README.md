@@ -116,3 +116,4 @@ About `POST /login`:
 - Rate limiter
 - Settings management (dotenv or config files)
 - Activate Keycloak secret
+- Remove auth endpoints and let keycloak handle the authentication (e.g. `standardFlowEnabled=true & directAccessGrantsEnabled=false` in realm.json)
