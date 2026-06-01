@@ -1,16 +1,18 @@
+from typing import Any
+
 import httpx
 from jose import jwt
 from jose.exceptions import JWTError
 
 from olapi.config import settings
 
-_jwks: dict | None = None
+_jwks: dict[str, Any] | None = None
 
 
-def _get_jwks() -> dict:
+def _get_jwks() -> dict[str, Any]:
     global _jwks
     if _jwks is None:
-        fetched = httpx.get(
+        fetched: dict[str, Any] = httpx.get(
             f"{settings.keycloak_url}/realms/{settings.keycloak_realm}/protocol/openid-connect/certs",
             timeout=10.0,
         ).json()
@@ -23,7 +25,7 @@ class TokenError(Exception):
     pass
 
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str) -> dict[str, Any]:
     try:
         header = jwt.get_unverified_header(token)
         kid = header.get("kid")
@@ -31,12 +33,13 @@ def decode_token(token: str) -> dict:
         key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
         if key is None:
             raise TokenError("unknown signing key")
-        return jwt.decode(
+        claims: dict[str, Any] = jwt.decode(
             token,
             key,
             algorithms=["RS256"],
             issuer=f"{settings.keycloak_url}/realms/{settings.keycloak_realm}",
             options={"verify_aud": False},
         )
+        return claims
     except JWTError as e:
         raise TokenError(str(e)) from e

@@ -7,5 +7,5 @@ router = APIRouter()
 
 
 @router.get("/hello")
-def hello(user: User = Depends(current_user)) -> dict:
+def hello(user: User = Depends(current_user)) -> dict[str, str]:
     return {"message": f"Hello {user.username} !"}
