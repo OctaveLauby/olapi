@@ -1,3 +1,5 @@
+from typing import Any
+
 import httpx
 
 from olapi.config import settings
@@ -22,7 +24,8 @@ class KeycloakClient:
             },
         )
         r.raise_for_status()
-        return r.json()["access_token"]
+        payload: dict[str, Any] = r.json()
+        return str(payload["access_token"])
 
     def create_user(self, username: str, email: str, password: str) -> str:
         token = self._admin_token()
@@ -33,9 +36,7 @@ class KeycloakClient:
                 "username": username,
                 "email": email,
                 "enabled": True,
-                "credentials": [
-                    {"type": "password", "value": password, "temporary": False}
-                ],
+                "credentials": [{"type": "password", "value": password, "temporary": False}],
             },
         )
         if r.status_code == 409:
@@ -52,7 +53,7 @@ class KeycloakClient:
         )
         r.raise_for_status()
 
-    def login(self, username: str, password: str) -> dict:
+    def login(self, username: str, password: str) -> dict[str, Any]:
         r = self._client.post(
             f"/realms/{settings.keycloak_realm}/protocol/openid-connect/token",
             data={
@@ -65,7 +66,8 @@ class KeycloakClient:
         if r.status_code == 401:
             raise KeycloakError("invalid credentials")
         r.raise_for_status()
-        return r.json()
+        payload: dict[str, Any] = r.json()
+        return payload
 
 
 keycloak = KeycloakClient()

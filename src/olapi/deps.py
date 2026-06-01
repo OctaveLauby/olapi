@@ -25,20 +25,12 @@ def current_user(
     db: Session = Depends(get_db),
 ) -> User:
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
     try:
         claims = decode_token(token)
     except TokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
-        ) from e
-    user = db.execute(
-        select(User).where(User.keycloak_id == claims["sub"])
-    ).scalar_one_or_none()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
+    user = db.execute(select(User).where(User.keycloak_id == claims["sub"])).scalar_one_or_none()
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown user"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown user")
     return user
