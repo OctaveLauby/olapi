@@ -35,7 +35,10 @@ make ci
 - ADD protection on user register (right now any one can create any number of users)
 - ADD migrations (app start should not build )
 - ADD Rate Limiter
+- ADD ACL (RBAC or something else)
+- ADD Observability (OpenTelemetry - Jaeger)
 - ADD Settings management (dotenv or config files)
+- ADD Proper Error management (API Problem)
 - REWORK Authentication
     - Activate Keycloak secret
     - Remove auth endpoints and let keycloak handle the authentication (e.g. `standardFlowEnabled=true & directAccessGrantsEnabled=false` in realm.json)
