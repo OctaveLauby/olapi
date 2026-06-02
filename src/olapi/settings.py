@@ -32,7 +32,7 @@ LOGGING_CONFIG = {
         },
     },
     "loggers": {
-        "": {"handlers": ["console"], "level": "INFO", "propagate": True},
+        "": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
         "httpx": {"level": "WARNING"},
         "uvicorn": {"level": "INFO", "handlers": ["console"], "propagate": False},
         "uvicorn.access": {"level": "INFO", "handlers": ["console"], "propagate": False},

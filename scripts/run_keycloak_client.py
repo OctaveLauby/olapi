@@ -2,7 +2,7 @@ import logging
 
 import httpx
 
-from auth.keycloak import AuthenticationError, KeycloakClient
+from authentication.keycloak import AuthenticationError, KeycloakClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,11 @@ def main(
         logger.info(f"New user created with id='{user_id}'.")
         token_info = authenticator.get_user_token(email=email, password=password)
         logger.info(f"New token created: {token_info}.")
-    user = authenticator.get_user_from_token(token_info.access_token)
-    logger.info(f"Got user from token: {user.id}.")
+    user_auth_id = authenticator.validate_token(token_info.access_token)
+    logger.info(f"Got user from token: {user_auth_id}.")
 
     if delete:
-        authenticator.delete_user(keycloak_id=user.id)
+        authenticator.delete_user(user_id=user_auth_id)
         logger.info("User deleted.")
 
 

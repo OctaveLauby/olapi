@@ -13,17 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class KeycloakUser:
-    id: str
-    token: str
-
-
-@dataclass
 class TokenInfo:
     access_token: str
-    refresh_token: str
     expires_in: int
-    token_type: str
 
 
 class AuthenticationError(Exception):
@@ -38,7 +30,7 @@ def _check_response(response: httpx.Response) -> None:
         logger.error(
             f"Failed {response.request.method} {response.request.url.path}"
             f": {response.status_code} {response.text}"
-        )
+        )  # Log response details as they are not shown in raised error
         raise
 
 
@@ -105,10 +97,10 @@ class KeycloakClient:
         ]  # "http://keycloak:8080/admin/realms/olapi/users/<id>"
         return location.rsplit("/", 1)[-1]
 
-    def delete_user(self, keycloak_id: str) -> None:
+    def delete_user(self, user_id: str) -> None:
         token = self._admin_token()
         self._client.delete(
-            f"/admin/realms/{self._keycloak_realm}/users/{keycloak_id}",
+            f"/admin/realms/{self._keycloak_realm}/users/{user_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
 
@@ -134,12 +126,11 @@ class KeycloakClient:
         # }
         return TokenInfo(
             access_token=response_data["access_token"],
-            refresh_token=response_data["refresh_token"],
             expires_in=response_data["expires_in"],
-            token_type=response_data["token_type"],
         )
 
-    def get_user_from_token(self, token: str) -> KeycloakUser:
+    def validate_token(self, token: str) -> str:
+        """Validate token with jwks and return user id."""
         jwks = self._load_jwks()
         header = jwt.get_unverified_header(token)
         public_key = next((k for k in jwks["keys"] if k["kid"] == header.get("kid")), None)
@@ -152,4 +143,5 @@ class KeycloakClient:
             issuer=f"{self._keycloak_url}/realms/{self._keycloak_realm}",
             options={"verify_aud": False},
         )
-        return KeycloakUser(token=token, id=token_json["sub"])
+        assert isinstance(token_json["sub"], str)
+        return token_json["sub"]

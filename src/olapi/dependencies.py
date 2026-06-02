@@ -3,18 +3,19 @@ from collections.abc import Iterator
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from auth.keycloak import AuthenticationError
-from olapi.auth import authenticator
-from olapi.db import SessionLocal
+from authentication.keycloak import AuthenticationError
+from olapi.auth import auth_client
+from olapi.database import session_maker
 from olapi.models.user import UserModel
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
 
-def get_db() -> Iterator[Session]:
-    db = SessionLocal()
+def get_session() -> Iterator[Session]:
+    db = session_maker()
     try:
         yield db
     finally:
@@ -23,17 +24,20 @@ def get_db() -> Iterator[Session]:
 
 def current_user(
     token: str | None = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
+    session: Session = Depends(get_session),
 ) -> UserModel:
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
     try:
-        keycloack_user = authenticator.get_user_from_token(token)
+        user_auth_id = auth_client.validate_token(token)
     except AuthenticationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
-    user = db.execute(
-        select(UserModel).where(UserModel.keycloak_id == keycloack_user.id)
-    ).scalar_one_or_none()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown user")
+    try:
+        user = session.execute(
+            select(UserModel).where(UserModel.auth_id == user_auth_id)
+        ).scalar_one()
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown user"
+        ) from None
     return user
