@@ -6,20 +6,15 @@ import httpx
 from jose import jwt
 from starlette import status as status_codes
 
-logger = logging.getLogger(__name__)
+from authentication import exceptions
 
-# TODO: consider using https://github.com/marcospereirampj/python-keycloak
-# TODO: error management (handle http errors - e.g. 409 on create) + usage in router
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class TokenInfo:
     access_token: str
     expires_in: int
-
-
-class AuthenticationError(Exception):
-    pass
 
 
 def _check_response(response: httpx.Response) -> None:
@@ -83,15 +78,20 @@ class KeycloakClient:
 
     def create_user(self, email: str, password: str) -> str:
         token = self._admin_token()
-        response = self._client.post(
-            f"/admin/realms/{self._keycloak_realm}/users",
-            headers={"Authorization": f"Bearer {token}"},
-            json={
-                "email": email,
-                "enabled": True,
-                "credentials": [{"type": "password", "value": password, "temporary": False}],
-            },
-        )
+        try:
+            response = self._client.post(
+                f"/admin/realms/{self._keycloak_realm}/users",
+                headers={"Authorization": f"Bearer {token}"},
+                json={
+                    "email": email,
+                    "enabled": True,
+                    "credentials": [{"type": "password", "value": password, "temporary": False}],
+                },
+            )
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == status_codes.HTTP_409_CONFLICT:
+                raise exceptions.UserExistsError(f"User '{email}' already exist.") from None
+            raise
         location = response.headers[
             "location"
         ]  # "http://keycloak:8080/admin/realms/olapi/users/<id>"
@@ -117,7 +117,7 @@ class KeycloakClient:
             )
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == status_codes.HTTP_401_UNAUTHORIZED:
-                raise AuthenticationError("Unauthorized") from None
+                raise exceptions.UnauthorizedError("Unauthorized") from None
             raise
         response_data = response.json()
         # {'access_token': '*.*.*-*-*-*', 'expires_in': 300, 'token_type': 'Bearer',
@@ -135,7 +135,9 @@ class KeycloakClient:
         header = jwt.get_unverified_header(token)
         public_key = next((k for k in jwks["keys"] if k["kid"] == header.get("kid")), None)
         if public_key is None:
-            raise AuthenticationError("Token invalid: public key couldn't be found in jwks.")
+            raise exceptions.UnauthorizedError(
+                "Token invalid: public key couldn't be found in jwks."
+            )
         token_json: dict[str, Any] = jwt.decode(
             token,
             public_key,

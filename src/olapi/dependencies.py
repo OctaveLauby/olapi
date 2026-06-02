@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from authentication.keycloak import AuthenticationError
+from authentication import exceptions as auth_exceptions
 from olapi.auth import auth_client
 from olapi.database import session_maker
 from olapi.models.user import UserModel
@@ -30,7 +30,7 @@ def current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
     try:
         user_auth_id = auth_client.validate_token(token)
-    except AuthenticationError as e:
+    except auth_exceptions.UnauthorizedError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
     try:
         user = session.execute(
