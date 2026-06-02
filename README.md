@@ -13,7 +13,7 @@ Stack:
 - **uv** for dependency management, with main libraries:
     - **sqlalchemy**
     - **ruff**
-    - **mypy**
+    - **pyright**
     - **pytest**
 - **fastapi** for api implementation
 - **pydantic** for data validation

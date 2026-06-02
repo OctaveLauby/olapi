@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from logging.config import dictConfig
 
@@ -13,7 +13,7 @@ dictConfig(LOGGING_CONFIG)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
     BaseModel.metadata.create_all(bind=engine)
     yield
 
