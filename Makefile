@@ -4,7 +4,7 @@ help:
 	@echo "sync ................ update venv"
 	@echo "format .............. run ruff formatter"
 	@echo "lint ................ run ruff lint check"
-	@echo "typecheck ........... run mypy type checker"
+	@echo "typecheck ........... run pyright type checker"
 	@echo "check ............... run lint and typecheck"
 
 sync:
@@ -19,6 +19,6 @@ lint:
 	poetry run ruff format --check
 
 typecheck:
-	uv run mypy src
+	uv run pyright src
 
 check: lint typecheck

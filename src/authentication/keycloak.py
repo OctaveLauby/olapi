@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from jose import jwt
@@ -64,7 +64,7 @@ class KeycloakClient:
             f"/realms/{self._keycloak_realm}/protocol/openid-connect/certs",
             timeout=10.0,
         )
-        self._jwks = response.json()
+        self._jwks = cast(dict[str, Any], response.json())
         return self._jwks
 
     def _admin_token(self) -> str:

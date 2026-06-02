@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.6", "mypy>=1.10", "types-python-jose>=3.3"]
+dev = ["ruff>=0.6", "pyright>=1.1.350", "types-python-jose>=3.3"]
 
 [build-system]
 requires = ["hatchling"]
@@ -44,7 +44,7 @@ select = [
 ]
 ignore = ["B008"] # function-call-in-default-argument (for fastapi Depends)
 
-[tool.mypy]
-python_version = "3.12"
-strict = true
-files = ["src"]
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["src"]
