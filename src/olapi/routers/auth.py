@@ -33,7 +33,7 @@ def register(payload: UserCreatePayload, session: Session = Depends(get_session)
     user_auth_id = auth_client.create_user(payload.email, payload.password)
     logger.debug(f"User {payload.email} saved authentication service.")
     user_model = UserModel(
-        keycloak_id=user_auth_id,
+        auth_id=user_auth_id,
         username=payload.username,
         email=payload.email,
     )
@@ -66,7 +66,7 @@ def login(payload: Credentials, session: Session = Depends(get_session)) -> Toke
         logger.debug(f"User {payload.email} saved in database at logging.")
         session.add(
             UserModel(
-                keycloak_id=user_keycloak_id,
+                auth_id=user_keycloak_id,
                 username=str(ULID()),
                 email=payload.email,
             )
