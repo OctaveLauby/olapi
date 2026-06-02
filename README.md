@@ -9,24 +9,29 @@ Requirements:
 - uv (tested with v0.8.3)
 - docker (tested with v29.3.1)
 
-1. **Start local stack**:
+**Start stack**:
 
-    ```bash
-    make run
-    ```
+```bash
+make run
+```
 
-    ```bash
-    # Rebuild your containers (clean data)
-    make rebuild
-    ```
+```bash
+# Rebuild your containers (clean data)
+make rebuild
+```
 
-2. **Requests on API**:
+Then:
 
-    ```bash
-    uv run scripts/request_api.py
-    ```
-
-3. **Check keycloak users**: [http://localhost:8080/admin/master/console/#/olapi/users]()
+* **Requests on API**: `uv run scripts/request_api.py`
+* **See swagger**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* **Check keycloak users**: [http://localhost:8080/admin/master/console/#/olapi/users](http://localhost:8080/admin/master/console/#/olapi/users)
+    * username=admin
+    * password=admin
+* **Check database content**, using your favourite database viewer:
+    * host name / address: localhost
+    * port: 5430
+    * username: olapai
+    * password: olapai
 
 
 ## Implementation
