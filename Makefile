@@ -30,12 +30,12 @@ run:
 # Contribute
 
 format:
-	poetry run ruff check --fix .                                                                                                                                                                                        
-	poetry run ruff format .
+	uv run ruff check --fix .
+	uv run ruff format .
 
 lint:
-	poetry run ruff check src
-	poetry run ruff format --check
+	uv run ruff check src
+	uv run ruff format --check
 
 typecheck:
 	uv run pyright
