@@ -14,3 +14,7 @@ def test_get_hello(app_client: TestClient, db_session: Session):
     response = app_client.get("/hello")
     assert response.status_code == 200
     assert response.json() == {"message": "Hello alice !"}
+
+
+def test_fails():
+    assert False  # noqa: B011
