@@ -8,7 +8,7 @@ from ulid import ULID
 
 from authentication import exceptions as auth_exceptions
 from olapi.auth import auth_client
-from olapi.dependencies import get_session
+from olapi.database import get_session
 from olapi.models.user import UserModel
 from olapi.schemas.auth import Credentials, TokenResponse
 from olapi.schemas.user import User, UserCreatePayload
