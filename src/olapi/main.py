@@ -4,16 +4,17 @@ from logging.config import dictConfig
 
 from fastapi import FastAPI
 
-from olapi.settings import LOGGING_CONFIG
-from olapi.db import Base, engine
+from olapi.database import engine
+from olapi.models.base import BaseModel
 from olapi.routers import auth, temporary
+from olapi.settings import LOGGING_CONFIG
 
 dictConfig(LOGGING_CONFIG)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
-    Base.metadata.create_all(bind=engine)
+    BaseModel.metadata.create_all(bind=engine)
     yield
 
 

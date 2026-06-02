@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from olapi.deps import current_user
+from olapi.dependencies import current_user
 from olapi.models.user import UserModel
 
 router = APIRouter()

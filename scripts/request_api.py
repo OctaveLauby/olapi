@@ -2,7 +2,7 @@ import logging
 
 import httpx
 
-from olapi.dtos.auth import LoginRequest, TokenResponse
+from olapi.schemas.auth import Credentials, TokenResponse
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ def main(
 ) -> None:
     response = httpx.post(
         "http://localhost:8000/login",
-        json=LoginRequest(email=email, password=password).model_dump(mode="json"),
+        json=Credentials(email=email, password=password).model_dump(mode="json"),
     )
     response.raise_for_status()
     token_info = TokenResponse.model_validate(response.json())

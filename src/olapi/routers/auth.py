@@ -6,12 +6,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from ulid import ULID
 
-from auth.keycloak import AuthenticationError
-from olapi.auth import authenticator
-from olapi.deps import get_db
-from olapi.dtos.auth import LoginRequest, TokenResponse
-from olapi.dtos.user import User, UserCreate
+from authentication.keycloak import AuthenticationError
+from olapi.auth import auth_client
+from olapi.dependencies import get_session
 from olapi.models.user import UserModel
+from olapi.schemas.auth import Credentials, TokenResponse
+from olapi.schemas.user import User, UserCreatePayload
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,8 @@ router = APIRouter()
 
 
 @router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
-    existing = db.execute(
+def register(payload: UserCreatePayload, session: Session = Depends(get_session)) -> User:
+    existing = session.execute(
         select(UserModel).where(
             (UserModel.username == payload.username) | (UserModel.email == payload.email)
         )
@@ -30,46 +30,46 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
             status_code=status.HTTP_409_CONFLICT,
             detail="username or email already taken",
         )
-    keycloak_id = authenticator.create_user(payload.email, payload.password)
-    logger.info(f"User {payload.email} saved authentication service.")
+    user_auth_id = auth_client.create_user(payload.email, payload.password)
+    logger.debug(f"User {payload.email} saved authentication service.")
     user_model = UserModel(
-        keycloak_id=keycloak_id,
+        keycloak_id=user_auth_id,
         username=payload.username,
         email=payload.email,
     )
     try:
-        db.add(user_model)
-        db.commit()
-        db.refresh(user_model)
-        logger.info(f"User {payload.email} saved database.")
+        session.add(user_model)
+        session.commit()
+        session.refresh(user_model)
+        logger.debug(f"User {payload.email} saved database.")
     except SQLAlchemyError:
-        db.rollback()
-        authenticator.delete_user(keycloak_id)
-        logger.info(f"User {payload.email} deleted from authentication service.")
+        session.rollback()
+        auth_client.delete_user(user_auth_id)
+        logger.debug(f"User {payload.email} deleted from authentication service.")
         raise
     return User.from_model(user_model)
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+def login(payload: Credentials, session: Session = Depends(get_session)) -> TokenResponse:
     try:
-        token_info = authenticator.get_user_token(payload.email, payload.password)
+        token_info = auth_client.get_user_token(payload.email, payload.password)
     except AuthenticationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
 
     # Create user if does not exist in db
-    keycloak_user = authenticator.get_user_from_token(token=token_info.access_token)
-    exists = db.execute(
-        select(UserModel).where(UserModel.keycloak_id == keycloak_user.id)
+    user_keycloak_id = auth_client.validate_token(token=token_info.access_token)
+    exists = session.execute(
+        select(UserModel).where(UserModel.auth_id == user_keycloak_id)
     ).scalar_one_or_none()
     if exists is None:
-        logger.info(f"User {payload.email} saved in database at logging.")
-        db.add(
+        logger.debug(f"User {payload.email} saved in database at logging.")
+        session.add(
             UserModel(
-                keycloak_id=keycloak_user.id,
+                keycloak_id=user_keycloak_id,
                 username=str(ULID()),
                 email=payload.email,
             )
         )
-        db.commit()
+        session.commit()
     return TokenResponse.from_info(token_info)
