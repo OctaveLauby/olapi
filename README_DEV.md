@@ -32,7 +32,8 @@ make ci
     - Endpoints
     - ADD Coverage
     - ADD html report
-- ADD migrations
+- ADD protection on user register (right now any one can create any number of users)
+- ADD migrations (app start should not build )
 - ADD Rate Limiter
 - ADD Settings management (dotenv or config files)
 - REWORK Authentication

@@ -10,8 +10,8 @@ from authentication import exceptions as auth_exceptions
 from olapi.auth import auth_client
 from olapi.database import get_session
 from olapi.models.user import UserModel
-from olapi.schemas.auth import Credentials, TokenResponse
-from olapi.schemas.user import User, UserCreatePayload
+from olapi.dtos.auth import Credentials, TokenResponse
+from olapi.dtos.user import User, UserCreatePayload
 
 logger = logging.getLogger(__name__)
 
