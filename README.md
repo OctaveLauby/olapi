@@ -1,14 +1,32 @@
-# API Template
+# Python API Template
 
 This repository aims to provide a proper template to build your API upon.
 
-Initial Assignement: https://github.com/SecondBrain-io/tech-interview/blob/master/developers/backend/social_media.md
+## Setup
+
+Requirements:
+
+- uv (tested with v0.8.3)
+- docker (tested with v29.3.1)
+
+1. **Start local stack**:
+
+    ```bash
+    make run
+    ```
+
+2. **Requests on API**:
+
+    ```bash
+    uv run scripts/request_api.py
+    ```
+
+3. **Check keycloak users**: [http://localhost:8080/admin/master/console/#/olapi/users]()
+
 
 ## Implementation
 
-### Design
-
-Stack:
+### Stack
 
 - **uv** for dependency management, with main libraries:
     - **sqlalchemy**
@@ -24,18 +42,39 @@ Stack:
     - Token validation in the API
     - Not storing password in my db
 
-### Todo
 
-- ADD token dependency to all routes (in main)
-- ADD setup commands
-- ADD tests
-    - Keycloak client
-    - API Auth protection
-    - Endpoints
-- ADD migrations
-- ADD Social Media Tables & Logic
-- ADD Rate Limiter
-- ADD Settings management (dotenv or config files)
-- REWORK Authentication
-    - Activate Keycloak secret
-    - Remove auth endpoints and let keycloak handle the authentication (e.g. `standardFlowEnabled=true & directAccessGrantsEnabled=false` in realm.json)
+### Structure
+
+```
+  .
+  ├── Makefile
+  ├── README.md
+  ├── README_DEV.md
+  ├── docker-compose.yml
+  ├── pyproject.toml
+  ├── ...
+  ├── keycloak/  # Settings for keycloak server
+  │   └── ...
+  ├── scripts/
+  │   └── ...
+  └── src/
+      ├── authentication/        # Keycloak client
+      │   └── ...
+      └── olapi/                 # FastAPI application
+          ├── __init__.py
+          ├── main.py
+          ├── settings.py
+          ├── ...
+          ├── models/            # tables
+          │   ├── ...
+          ├── routers/           # endpoints
+          │   └── ...
+          └── schemas/           # dtos
+              └── ...
+```
+
+### Shortcuts
+
+* **No store layer** to isolate database operations
+* **No service layer** to isolate business logic
+* **No entities vs dtos distinction** to isolate interfaces from processes (would require store/service layer) 
