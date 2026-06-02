@@ -26,8 +26,12 @@ Stack:
 
 ### Todo
 
+- ADD token dependency to all routes (in main)
 - ADD setup commands
 - ADD tests
+    - Keycloak client
+    - API Auth protection
+    - Endpoints
 - ADD migrations
 - ADD Social Media Tables & Logic
 - ADD Rate Limiter

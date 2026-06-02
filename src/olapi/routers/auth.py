@@ -2,11 +2,11 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.orm import Session
 from ulid import ULID
 
-from authentication.keycloak import AuthenticationError
+from authentication import exceptions as auth_exceptions
 from olapi.auth import auth_client
 from olapi.dependencies import get_session
 from olapi.models.user import UserModel
@@ -20,17 +20,24 @@ router = APIRouter()
 
 @router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
 def register(payload: UserCreatePayload, session: Session = Depends(get_session)) -> User:
-    existing = session.execute(
-        select(UserModel).where(
-            (UserModel.username == payload.username) | (UserModel.email == payload.email)
-        )
-    ).scalar_one_or_none()
-    if existing is not None:
+    try:
+        session.execute(
+            select(UserModel).where(
+                (UserModel.username == payload.username) | (UserModel.email == payload.email)
+            )
+        ).scalar_one_or_none()
+    except NoResultFound:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="username or email already taken",
-        )
-    user_auth_id = auth_client.create_user(payload.email, payload.password)
+            detail="username or email already taken.",
+        ) from None
+    try:
+        user_auth_id = auth_client.create_user(payload.email, payload.password)
+    except auth_exceptions.UserExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="email already registered in authentication service",
+        ) from None
     logger.debug(f"User {payload.email} saved authentication service.")
     user_model = UserModel(
         auth_id=user_auth_id,
@@ -54,7 +61,7 @@ def register(payload: UserCreatePayload, session: Session = Depends(get_session)
 def login(payload: Credentials, session: Session = Depends(get_session)) -> TokenResponse:
     try:
         token_info = auth_client.get_user_token(payload.email, payload.password)
-    except AuthenticationError as e:
+    except auth_exceptions.UnauthorizedError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
 
     # Create user if does not exist in db

@@ -3,14 +3,29 @@ import logging
 import httpx
 
 from olapi.schemas.auth import Credentials, TokenResponse
+from olapi.schemas.user import User, UserCreatePayload
 
 logger = logging.getLogger(__name__)
 
 
 def main(
+    username: str,
     email: str,
     password: str,
 ) -> None:
+
+    response = httpx.post(
+        "http://localhost:8000/users",
+        json=UserCreatePayload(
+            email=email,
+            password=password,
+            username=username,
+        ).model_dump(mode="json"),
+    )
+    response.raise_for_status()
+    user = User.model_validate(response.json())
+    logger.info(f"User created: {user}")
+
     response = httpx.post(
         "http://localhost:8000/login",
         json=Credentials(email=email, password=password).model_dump(mode="json"),
@@ -33,6 +48,7 @@ if __name__ == "__main__":
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
     main(
+        username="olauby",
         email="olauby@example.com",
-        password="123",
+        password="123456789",
     )
