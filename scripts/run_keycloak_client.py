@@ -1,8 +1,9 @@
 import logging
 
-import httpx
+import httpx2
 
-from authentication.keycloak import AuthenticationError, KeycloakClient
+from authentication import exceptions as auth_exceptions
+from authentication.keycloak import KeycloakClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,10 @@ def main(
     try:
         token_info = authenticator.get_user_token(email=email, password=password)
         logger.info(f"Got token from existing user: '{token_info}'.")
-    except httpx.ConnectError:
+    except httpx2.ConnectError:
         logger.info("Could not connect to keycloack: make sure keycloak container is up.")
         raise
-    except AuthenticationError:
+    except auth_exceptions.AuthenticationError:
         user_id = authenticator.create_user(email=email, password=password)
         logger.info(f"New user created with id='{user_id}'.")
         token_info = authenticator.get_user_token(email=email, password=password)
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
     main(
-        email="olauby@example.com",
+        email="someone@example.com",
         password="123",
         delete=False,
     )

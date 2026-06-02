@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, cast
 
-import httpx
+import httpx2
 from jose import jwt
 from starlette import status as status_codes
 
@@ -17,10 +17,10 @@ class TokenInfo:
     expires_in: int
 
 
-def _check_response(response: httpx.Response) -> None:
+def _check_response(response: httpx2.Response) -> None:
     try:
         response.raise_for_status()
-    except httpx.HTTPStatusError:
+    except httpx2.HTTPStatusError:
         response.read()
         logger.error(
             f"Failed {response.request.method} {response.request.url.path}"
@@ -44,7 +44,7 @@ class KeycloakClient:
         self._keycloak_realm = keycloak_realm
         self._keycloak_client_id = keycloak_client_id
 
-        self._client = httpx.Client(
+        self._client = httpx2.Client(
             base_url=self._keycloak_url,
             timeout=10.0,
             event_hooks={"response": [_check_response]},
@@ -88,7 +88,7 @@ class KeycloakClient:
                     "credentials": [{"type": "password", "value": password, "temporary": False}],
                 },
             )
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             if exc.response.status_code == status_codes.HTTP_409_CONFLICT:
                 raise exceptions.UserExistsError(f"User '{email}' already exist.") from None
             raise
@@ -115,7 +115,7 @@ class KeycloakClient:
                     "password": password,
                 },
             )
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             if exc.response.status_code == status_codes.HTTP_401_UNAUTHORIZED:
                 raise exceptions.UnauthorizedError("Unauthorized") from None
             raise

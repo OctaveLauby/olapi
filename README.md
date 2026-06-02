@@ -15,6 +15,11 @@ Requirements:
     make run
     ```
 
+    ```bash
+    # Rebuild your containers (clean data)
+    make rebuild
+    ```
+
 2. **Requests on API**:
 
     ```bash
