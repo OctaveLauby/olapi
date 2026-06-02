@@ -2,6 +2,7 @@ import logging
 
 import httpx2
 
+from authentication.keycloak import check_response
 from olapi.schemas.auth import Credentials, TokenResponse
 from olapi.schemas.user import User, UserCreatePayload
 
@@ -22,7 +23,7 @@ def main(
             username=username,
         ).model_dump(mode="json"),
     )
-    response.raise_for_status()
+    check_response(response)
     user = User.model_validate(response.json())
     logger.info(f"User created: {user}")
 
@@ -30,7 +31,7 @@ def main(
         "http://localhost:8000/login",
         json=Credentials(email=email, password=password).model_dump(mode="json"),
     )
-    response.raise_for_status()
+    check_response(response)
     token_info = TokenResponse.model_validate(response.json())
     logger.info(f"Token fetched: {token_info}")
 
@@ -38,7 +39,7 @@ def main(
         "http://localhost:8000/hello",
         headers={"Authorization": f"Bearer {token_info.access_token}"},
     )
-    response.raise_for_status()
+    check_response(response)
     logger.info(f"Hello response: {response.json()}")
 
 

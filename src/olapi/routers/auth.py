@@ -39,15 +39,10 @@ def register(payload: UserCreatePayload, session: Session = Depends(get_session)
             detail="email already registered in authentication service",
         ) from None
     logger.debug(f"User {payload.email} saved authentication service.")
-    user_model = UserModel(
-        auth_id=user_auth_id,
-        username=payload.username,
-        email=payload.email,
-    )
+    user_model = UserModel(auth_id=user_auth_id, username=payload.username, email=payload.email)
     try:
         session.add(user_model)
         session.commit()
-        session.refresh(user_model)
         logger.debug(f"User {payload.email} saved database.")
     except SQLAlchemyError:
         session.rollback()

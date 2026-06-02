@@ -17,7 +17,8 @@ class TokenInfo:
     expires_in: int
 
 
-def _check_response(response: httpx2.Response) -> None:
+def check_response(response: httpx2.Response) -> None:
+    """Wraps `httpx2.Response.raise_for_status` to also log response content on errors."""
     try:
         response.raise_for_status()
     except httpx2.HTTPStatusError:
@@ -47,7 +48,7 @@ class KeycloakClient:
         self._client = httpx2.Client(
             base_url=self._keycloak_url,
             timeout=10.0,
-            event_hooks={"response": [_check_response]},
+            event_hooks={"response": [check_response]},
         )
         self._jwks: dict[str, Any] | None = None
 
