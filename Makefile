@@ -16,9 +16,6 @@ help:
 
 # Setup
 
-sync:
-	uv sync
-
 rebuild:
 	docker compose down --rmi local -v
 	docker compose build
@@ -28,6 +25,9 @@ run:
 
 
 # Contribute
+
+sync:
+	uv sync
 
 format:
 	uv run ruff check --fix .
@@ -43,8 +43,7 @@ typecheck:
 
 check: lint typecheck
 
-
 test:
 	uv run pytest
 
-ci: sync lint check test
+ci: sync lint typecheck test
