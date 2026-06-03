@@ -39,6 +39,29 @@ make ci
 - ADD Observability (OpenTelemetry - Jaeger)
 - ADD Settings management (dotenv or config files)
 - ADD Proper Error management (API Problem)
+- UPDATE code structure and use [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/)
+
+    ```
+    .
+    ├── ...
+    ├── .venv/...
+    ├── pyproject.toml
+    ├── uv.lock
+    ├── apps
+    │   └── olapi/
+    │       ├── src/olapi/...
+    │       ├── tests/...
+    │       ├── pyproject.toml
+    │       └── README.md
+    └── packages
+        ├── ...
+        └── authentication/
+            ├── src/authentication/...
+            ├── tests/...
+            ├── pyproject.toml
+            └── README.md
+    ```
+
 - REWORK Authentication
     - Activate Keycloak secret
     - Remove auth endpoints and let keycloak handle the authentication (e.g. `standardFlowEnabled=true & directAccessGrantsEnabled=false` in realm.json)
