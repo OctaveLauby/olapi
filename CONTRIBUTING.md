@@ -39,7 +39,7 @@ make ci
 - ADD Observability (OpenTelemetry - Jaeger)
 - ADD Settings management (dotenv or config files)
 - ADD Proper Error management (API Problem)
-- UPDATE code structure and use [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/)
+- UPDATE code structure and use [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/) with [app vs package vs lib conventions](https://docs.astral.sh/uv/concepts/projects/init/).
 
     ```
     .
@@ -49,11 +49,12 @@ make ci
     ├── uv.lock
     ├── apps
     │   └── olapi/
-    │       ├── src/olapi/...
+    │       ├── ...
+    │       ├── main.py
     │       ├── tests/...
     │       ├── pyproject.toml
     │       └── README.md
-    └── packages
+    └── libraries
         ├── ...
         └── authentication/
             ├── src/authentication/...
