@@ -65,10 +65,10 @@ Using [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/):
   ├── docker-compose.yml
   ├── pyproject.toml
   ├── ...
-  ├── keycloak/  # Settings for keycloak server
-  │   └── ...
-  ├── scripts/
-  │   └── ...
+  ├── docker/                    # docker stack config
+  │   ├── Dockerfile             # api image build
+  │   └── keycloak/              # keycloak realm import
+  │       └── ...
   ├── apps/
   │   └── olapi/                 # FastAPI application (flat uv-app)
   │       ├── main.py
@@ -77,6 +77,7 @@ Using [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/):
   │       ├── models/            # tables
   │       ├── routers/           # endpoints
   │       ├── dtos/              # dtos
+  │       ├── scripts/           # API usage scripts
   │       ├── tests/
   │       └── pyproject.toml
   └── libs/
