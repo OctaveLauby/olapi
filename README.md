@@ -22,7 +22,7 @@ make rebuild
 
 Then:
 
-* **Requests on API**: `uv run scripts/request_api.py`
+* **Requests on API**: `uv run --directory apps/olapi python -m scripts.request_api`
 * **See swagger**: [http://localhost:8000/docs](http://localhost:8000/docs)
 * **Check keycloak users**: [http://localhost:8080/admin/master/console/#/olapi/users](http://localhost:8080/admin/master/console/#/olapi/users)
     * username=admin
