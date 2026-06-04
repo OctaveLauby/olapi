@@ -11,7 +11,6 @@ RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-# The olapi app is a flat uv-app; run it from its own directory so `main:app` resolves.
 WORKDIR /app/apps/olapi
 
 EXPOSE 8000

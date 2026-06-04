@@ -1,7 +1,7 @@
+from conftest import TEST_AUTH_ID
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from conftest import TEST_AUTH_ID
 from models.user import UserModel
 
 

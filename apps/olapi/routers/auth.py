@@ -1,5 +1,6 @@
 import logging
 
+from authentication import exceptions as auth_exceptions
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
@@ -7,7 +8,6 @@ from sqlalchemy.orm import Session
 from ulid import ULID
 
 from auth import auth_client
-from authentication import exceptions as auth_exceptions
 from database import get_session
 from dtos.auth import Credentials, TokenResponse
 from dtos.user import User, UserCreatePayload

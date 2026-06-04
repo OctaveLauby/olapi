@@ -1,11 +1,11 @@
+from authentication import exceptions as auth_exceptions
+from authentication.keycloak import KeycloakClient
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from authentication import exceptions as auth_exceptions
-from authentication.keycloak import KeycloakClient
 from database import get_session
 from models.user import UserModel
 from settings import settings
