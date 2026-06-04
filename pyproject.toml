@@ -10,8 +10,10 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+# Does not includes apps as there can be path collisions between flat-app (e.g. main.py)
 testpaths = ["libs"]
-addopts = ["--import-mode=importlib"]  # avoid test name conflict between libraries
+# Use importlib mode to avoid naming conflicts between libraries test files
+addopts = ["--import-mode=importlib"]
 
 [tool.ruff]
 target-version = "py312"
