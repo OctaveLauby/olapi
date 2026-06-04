@@ -20,12 +20,14 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     volumes:
-      - ./keycloak:/opt/keycloak/data/import:ro
+      - ./docker/keycloak:/opt/keycloak/data/import:ro
     ports:
       - "8080:8080"
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     command: uvicorn main:app --host 0.0.0.0 --reload --reload-dir /app/apps/olapi
     depends_on:
       postgres:
