@@ -1,8 +1,8 @@
 import logging
 
 import httpx2
-
 from authentication.keycloak import check_response
+
 from dtos.auth import Credentials, TokenResponse
 from dtos.user import User, UserCreatePayload
 

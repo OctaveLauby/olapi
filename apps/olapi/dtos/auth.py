@@ -1,8 +1,7 @@
 from typing import Self
 
-from pydantic import BaseModel, EmailStr
-
 from authentication.keycloak import TokenInfo
+from pydantic import BaseModel, EmailStr
 
 
 class Credentials(BaseModel):

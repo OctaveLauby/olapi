@@ -10,15 +10,9 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-# Libraries are collected here; apps run in their own pytest process (see the
-# Makefile) so the flat app modules don't collide with library test discovery.
 testpaths = ["libs"]
-# importlib import mode imports each test file under a unique name, so
-# identically-named test files across members can coexist without __init__.py.
-addopts = ["--import-mode=importlib"]
+addopts = ["--import-mode=importlib"]  # avoid test name conflict between libraries
 
-# Shared lint config for the whole workspace. Members extend this via
-# `[tool.ruff] extend = "../../pyproject.toml"`.
 [tool.ruff]
 target-version = "py312"
 line-length = 100
@@ -45,8 +39,5 @@ venvPath = "."
 venv = ".venv"
 include = ["apps", "libs"]
 
-# The olapi app is a flat, non-packaged uv-app: its modules live directly under
-# apps/olapi and are imported as `from main import ...`. This execution
-# environment puts that directory on the import path for the type checker.
 [[tool.pyright.executionEnvironments]]
 root = "apps/olapi"
