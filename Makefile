@@ -34,7 +34,7 @@ format:
 	uv run ruff format .
 
 lint:
-	uv run ruff check src
+	uv run ruff check
 	uv run ruff format --check
 
 typecheck:
@@ -45,5 +45,6 @@ check: lint typecheck
 
 test:
 	uv run pytest
+	uv run --directory apps/olapi pytest
 
 ci: sync lint typecheck test

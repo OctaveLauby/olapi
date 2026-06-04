@@ -55,11 +55,13 @@ Then:
 
 ### Structure
 
+Using [uv workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/):
+
 ```
   .
   ├── Makefile
   ├── README.md
-  ├── README_DEV.md
+  ├── CONTRIBUTING.md
   ├── docker-compose.yml
   ├── pyproject.toml
   ├── ...
@@ -67,20 +69,22 @@ Then:
   │   └── ...
   ├── scripts/
   │   └── ...
-  └── src/
-      ├── authentication/        # Keycloak client
-      │   └── ...
-      └── olapi/                 # FastAPI application
-          ├── __init__.py
-          ├── main.py
-          ├── settings.py
-          ├── ...
-          ├── models/            # tables
-          │   ├── ...
-          ├── routers/           # endpoints
+  ├── apps/
+  │   └── olapi/                 # FastAPI application (flat uv-app)
+  │       ├── main.py
+  │       ├── settings.py
+  │       ├── ...
+  │       ├── models/            # tables
+  │       ├── routers/           # endpoints
+  │       ├── dtos/              # dtos
+  │       ├── tests/
+  │       └── pyproject.toml
+  └── libs/
+      └── authentication/        # Keycloak client (packaged library)
+          ├── src/authentication/
           │   └── ...
-          └── dtos/              # dtos
-              └── ...
+          ├── tests/
+          └── pyproject.toml
 ```
 
 ### Shortcuts

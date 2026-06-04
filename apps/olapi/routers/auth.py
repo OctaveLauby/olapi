@@ -6,12 +6,12 @@ from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.orm import Session
 from ulid import ULID
 
+from auth import auth_client
 from authentication import exceptions as auth_exceptions
-from olapi.auth import auth_client
-from olapi.database import get_session
-from olapi.dtos.auth import Credentials, TokenResponse
-from olapi.dtos.user import User, UserCreatePayload
-from olapi.models.user import UserModel
+from database import get_session
+from dtos.auth import Credentials, TokenResponse
+from dtos.user import User, UserCreatePayload
+from models.user import UserModel
 
 logger = logging.getLogger(__name__)
 

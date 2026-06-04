@@ -3,7 +3,7 @@ from typing import Self
 
 from pydantic import BaseModel, EmailStr, Field
 
-from olapi.models.user import UserModel
+from models.user import UserModel
 
 
 class UserCreatePayload(BaseModel):
