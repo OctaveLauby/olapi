@@ -12,12 +12,12 @@ Requirements:
 **Start stack**:
 
 ```bash
-make run
+# Optional on first run: rebuild your containers (clean data)
+make rebuild
 ```
 
 ```bash
-# Rebuild your containers (clean data)
-make rebuild
+make run
 ```
 
 Then:
