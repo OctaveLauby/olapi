@@ -4,11 +4,11 @@ from logging.config import dictConfig
 
 from fastapi import APIRouter, Depends, FastAPI
 
-from olapi.auth import check_authentication
-from olapi.database import engine
-from olapi.models.base import BaseModel
-from olapi.routers import auth, temporary
-from olapi.settings import LOGGING_CONFIG
+from auth import check_authentication
+from database import engine
+from models.base import BaseModel
+from routers import auth, temporary
+from settings import LOGGING_CONFIG
 
 dictConfig(LOGGING_CONFIG)
 

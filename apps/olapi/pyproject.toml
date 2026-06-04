@@ -1,0 +1,44 @@
+[project]
+name = "olapi"
+version = "0.0.1"
+description = "Social Media API"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.1",
+    "pydantic[email]>=2.6",
+    "python-jose[cryptography]>=3.3",
+    "python-ulid>=2.2",
+    "httpx2>=2.3",
+    "authentication",
+]
+
+# Flat uv-app: no [build-system], so the app is not built or installed as a
+# package. Its modules are imported relative to this directory (see pythonpath).
+
+[tool.uv.sources]
+authentication = { workspace = true }
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+# The app is flat, so isort can't auto-detect its own modules; the authentication
+# workspace library is also a first-party concern. Group them together.
+[tool.ruff.lint.isort]
+known-first-party = [
+    "authentication",
+    "auth",
+    "conftest",
+    "database",
+    "dtos",
+    "main",
+    "models",
+    "routers",
+    "settings",
+]

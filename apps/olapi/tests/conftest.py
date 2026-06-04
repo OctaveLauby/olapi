@@ -6,10 +6,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from olapi.auth import check_authentication
-from olapi.database import get_session
-from olapi.main import app
-from olapi.models.base import BaseModel
+from auth import check_authentication
+from database import get_session
+from main import app
+from models.base import BaseModel
 
 TEST_AUTH_ID = "test-auth-id"
 

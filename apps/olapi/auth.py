@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 
 from authentication import exceptions as auth_exceptions
 from authentication.keycloak import KeycloakClient
-from olapi.database import get_session
-from olapi.models.user import UserModel
-from olapi.settings import settings
+from database import get_session
+from models.user import UserModel
+from settings import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 auth_client = KeycloakClient(

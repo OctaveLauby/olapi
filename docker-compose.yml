@@ -26,7 +26,7 @@ services:
 
   api:
     build: .
-    command: uvicorn olapi.main:app --host 0.0.0.0 --reload --reload-dir /app/src
+    command: uvicorn main:app --host 0.0.0.0 --reload --reload-dir /app/apps/olapi
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,4 +35,4 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./src:/app/src
+      - ./apps/olapi:/app/apps/olapi

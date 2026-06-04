@@ -1,8 +1,8 @@
-from conftest import TEST_AUTH_ID
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from olapi.models.user import UserModel
+from conftest import TEST_AUTH_ID
+from models.user import UserModel
 
 
 def test_get_hello(app_client: TestClient, db_session: Session):

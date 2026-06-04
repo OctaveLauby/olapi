@@ -1,7 +1,6 @@
 import logging
 
 import httpx2
-
 from authentication.keycloak import check_response
 from olapi.dtos.auth import Credentials, TokenResponse
 from olapi.dtos.user import User, UserCreatePayload
